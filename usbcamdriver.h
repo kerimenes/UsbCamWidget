@@ -2,6 +2,7 @@
 #define USBCAMDRIVER_H
 
 #include <QObject>
+#include <QThread>
 
 class UsbCamDriver : public QObject
 {

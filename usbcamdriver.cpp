@@ -42,16 +42,40 @@ QImage convertYUVtoRGB(void *data, int width, int height)
 	return m_RGB;
 }
 
-
-void cb(uvc_frame_t *frame, void *ptr)
+unsigned char* cvtI422toRGB(void* data, int w, int h)
 {
-//	static QElapsedTimer t;
-//	if (t.restart() < 4)
+	unsigned char* yData = (unsigned char*) data;
+	unsigned char* rgbData;
+	rgbData = (unsigned char*)malloc(w * h * 3);
+
+	for (int i = 0, j = 0; i < w * h * 3; i+=6, j+=4) {
+		unsigned char y = yData[j];
+		unsigned char u = yData[j+1];
+		unsigned char v = yData[j+3];
+		rgbData[i+0] = 1.0*y + 1.140*v; //R
+		rgbData[i+1] = 1.0*y - 0.395*u - 0.581*v; //G
+		rgbData[i+2] = 1.0*y + 2.032*u; //B
+
+		y = yData[j+2];
+		rgbData[i+3] = 1.0*y + 1.140*v; //R
+		rgbData[i+4] = 1.0*y - 0.395*u - 0.581*v; //G
+		rgbData[i+5] = 1.0*y + 2.032*u; //B
+	}
+	return rgbData;
+}
+
+void cb(uvc_frame_t *frame, void *)
+{
+	static QElapsedTimer timer;
+	qDebug() << "cb" << timer.restart() << frame->data_bytes << frame->sequence << frame->step << frame->width
+			 << frame->height << (uchar *)frame->data << frame->frame_format;
+
+//	QFile f(QString("images/im%1.bin").arg(frame->sequence));
+//	if(!f.open(QIODevice::WriteOnly | QIODevice::Unbuffered))
 //		return;
-	qDebug() << frame->width << (uchar *)frame->data << frame->frame_format;
-	/* Do the BGR conversion */
-	QImage myRGB = convertYUVtoRGB(frame->data, frame->width, frame->height);
-//	qDebug() << myRGB.isNull();
+//	f.write((const char*)frame->data, 1920 * 1080* 2);
+//	f.close();
+
 }
 
 UsbCamDriver::UsbCamDriver(QObject *parent)
@@ -91,18 +115,18 @@ int UsbCamDriver::initDevice()
 
 	res = uvc_get_stream_ctrl_format_size(devh, &ctrl, UVC_FRAME_FORMAT_YUYV, 1920, 1080, 25);
 	ctrl.bFormatIndex = 1;
-	ctrl.bFrameIndex = 3;
-	ctrl.dwFrameInterval = 40000;
+	ctrl.bFrameIndex = 1;
+	ctrl.dwFrameInterval = 400000;
 	ctrl.wKeyFrameRate = 0;
 	ctrl.wPFrameRate = 0;
 	ctrl.wCompQuality = 0;
 	ctrl.wCompWindowSize = 0;
 	ctrl.wDelay = 0;
-	ctrl.dwMaxVideoFrameSize = 4147200;
-	ctrl.dwMaxPayloadTransferSize = 16384;
+	ctrl.dwMaxVideoFrameSize = 41472000;
+	ctrl.dwMaxPayloadTransferSize = 32768;//16384;
 	ctrl.bInterfaceNumber = 1;
 	uvc_print_stream_ctrl(&ctrl, stderr);
-	void* data;
+	void* data = 0;
 	res = uvc_start_streaming(devh, &ctrl, cb, data, 0 );
 	if (res < 0)
 		qDebug() << "error";
@@ -110,4 +134,7 @@ int UsbCamDriver::initDevice()
 		sleep(30);
 	}
 	qDebug() << res << "result";
+	return 0;
 }
+
+

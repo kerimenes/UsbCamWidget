@@ -2,13 +2,19 @@
 #include <QApplication>
 
 #include <usbcamdriver.h>
+#include <packetparse.h>
+#include <usbstreamer.h>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    UsbCamDriver usb;
+//	PacketParse packet;
+//	UsbCamDriver usb;
 //    MainWindow w;
 //    w.show();
+
+	USBStreamer streamer;
+	streamer.start();
 
     return a.exec();
 }

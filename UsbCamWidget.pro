@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,17 +14,25 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    usbcamdriver.cpp
+    usbcamdriver.cpp \
+    packetparse.cpp \
+    usbstreamer.cpp
 
 HEADERS  += mainwindow.h \
-    usbcamdriver.h
+    usbcamdriver.h \
+    packetparse.h \
+    usbstreamer.h
 
 FORMS    += mainwindow.ui
+
+message($$OUT_PWD)
+INCLUDEPATH += $$OUT_PWD/../usr/local/include
+LIBS += $$OUT_PWD/../usr/local/lib/liblmm.a
 
 INCLUDEPATH += /home/kerim/myfs/codes/libuvc/build2
 LIBS += -L/home/kerim/myfs/codes/libuvc/build2
 
-LIBS += -luvc
+LIBS += -luvc -lpcap
 
 INCLUDEPATH += /usr/include/opencv
     LIBS += -lopencv_core \
